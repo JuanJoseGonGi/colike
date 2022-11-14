@@ -25,15 +25,12 @@ public class WorldGenerator : MonoBehaviour
 
   [Header("Terrain")]
   public Material TerrainMaterial;
-  private MeshRenderer meshRenderer;
-  private MeshFilter meshFilter;
+  public Material EdgeMaterial;
   private GameObject player;
 
   private void Start()
   {
     player = GameObject.Find("Player");
-    meshRenderer = gameObject.GetComponent<MeshRenderer>();
-    meshFilter = gameObject.GetComponent<MeshFilter>();
 
     GenerateSeed();
     GenerateWorld();
@@ -168,6 +165,11 @@ public class WorldGenerator : MonoBehaviour
     {
       for (int j = 0; j < Size; j++)
       {
+        if (worldGrid[i, j] == null || worldGrid[i, j].Type == WorldCell.CellType.Empty)
+        {
+          continue;
+        }
+
         Vector3 topLeft = new(i - .5f, 0, j + .5f);
         Vector3 topRight = new(i + .5f, 0, j + .5f);
         Vector3 bottomLeft = new(i - .5f, 0, j - .5f);
@@ -203,9 +205,12 @@ public class WorldGenerator : MonoBehaviour
     mesh.uv = uvs.ToArray();
 
     mesh.RecalculateNormals();
+
+    MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
     meshFilter.mesh = mesh;
 
     DrawTerrainTexture();
+    DrawEdgesMesh();
   }
 
   void DrawTerrainTexture()
@@ -219,7 +224,6 @@ public class WorldGenerator : MonoBehaviour
       {
         if (worldGrid[i, j] == null)
         {
-          colorMap[i + j * Size] = Color.black;
           continue;
         }
 
@@ -237,7 +241,141 @@ public class WorldGenerator : MonoBehaviour
     texture.SetPixels32(colorMap, 0);
     texture.Apply();
 
+    MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
     meshRenderer.material = TerrainMaterial;
     meshRenderer.material.mainTexture = texture;
+  }
+
+  void DrawEdgesMesh()
+  {
+    Mesh mesh = new();
+
+    List<Vector3> vertices = new();
+    List<int> triangles = new();
+
+    for (int i = 0; i < Size; i++)
+    {
+      for (int j = 0; j < Size; j++)
+      {
+        if (worldGrid[i, j] == null)
+        {
+          continue;
+        }
+
+        if (i > 0)
+        {
+          WorldCell leftCell = worldGrid[i - 1, j];
+          if (leftCell == null || leftCell.Type == WorldCell.CellType.Empty)
+          {
+            Vector3 topLeft = new(i - .5f, 0, j + .5f);
+            Vector3 topRight = new(i - .5f, 0, j - .5f);
+            Vector3 bottomLeft = new(i - .5f, -1, j + .5f);
+            Vector3 bottomRight = new(i - .5f, -1, j - .5f);
+
+            vertices.Add(topLeft);
+            vertices.Add(topRight);
+            vertices.Add(bottomLeft);
+            vertices.Add(bottomRight);
+
+            triangles.Add(vertices.Count - 4);
+            triangles.Add(vertices.Count - 3);
+            triangles.Add(vertices.Count - 2);
+
+            triangles.Add(vertices.Count - 3);
+            triangles.Add(vertices.Count - 1);
+            triangles.Add(vertices.Count - 2);
+          }
+        }
+
+        if (i < Size - 1)
+        {
+          WorldCell rightCell = worldGrid[i + 1, j];
+          if (rightCell == null || rightCell.Type == WorldCell.CellType.Empty)
+          {
+            Vector3 topLeft = new(i + .5f, 0, j - .5f);
+            Vector3 topRight = new(i + .5f, 0, j + .5f);
+            Vector3 bottomLeft = new(i + .5f, -1, j - .5f);
+            Vector3 bottomRight = new(i + .5f, -1, j + .5f);
+
+            vertices.Add(topLeft);
+            vertices.Add(topRight);
+            vertices.Add(bottomLeft);
+            vertices.Add(bottomRight);
+
+            triangles.Add(vertices.Count - 4);
+            triangles.Add(vertices.Count - 3);
+            triangles.Add(vertices.Count - 2);
+
+            triangles.Add(vertices.Count - 3);
+            triangles.Add(vertices.Count - 1);
+            triangles.Add(vertices.Count - 2);
+          }
+        }
+
+        if (j > 0)
+        {
+          WorldCell bottomCell = worldGrid[i, j - 1];
+          if (bottomCell == null || bottomCell.Type == WorldCell.CellType.Empty)
+          {
+            Vector3 topLeft = new(i - .5f, 0, j - .5f);
+            Vector3 topRight = new(i + .5f, 0, j - .5f);
+            Vector3 bottomLeft = new(i - .5f, -1, j - .5f);
+            Vector3 bottomRight = new(i + .5f, -1, j - .5f);
+
+            vertices.Add(topLeft);
+            vertices.Add(topRight);
+            vertices.Add(bottomLeft);
+            vertices.Add(bottomRight);
+
+            triangles.Add(vertices.Count - 4);
+            triangles.Add(vertices.Count - 3);
+            triangles.Add(vertices.Count - 2);
+
+            triangles.Add(vertices.Count - 3);
+            triangles.Add(vertices.Count - 1);
+            triangles.Add(vertices.Count - 2);
+          }
+        }
+
+        if (j < Size - 1)
+        {
+          WorldCell topCell = worldGrid[i, j + 1];
+          if (topCell == null || topCell.Type == WorldCell.CellType.Empty)
+          {
+            Vector3 topLeft = new(i + .5f, 0, j + .5f);
+            Vector3 topRight = new(i - .5f, 0, j + .5f);
+            Vector3 bottomLeft = new(i + .5f, -1, j + .5f);
+            Vector3 bottomRight = new(i - .5f, -1, j + .5f);
+
+            vertices.Add(topLeft);
+            vertices.Add(topRight);
+            vertices.Add(bottomLeft);
+            vertices.Add(bottomRight);
+
+            triangles.Add(vertices.Count - 4);
+            triangles.Add(vertices.Count - 3);
+            triangles.Add(vertices.Count - 2);
+
+            triangles.Add(vertices.Count - 3);
+            triangles.Add(vertices.Count - 1);
+            triangles.Add(vertices.Count - 2);
+          }
+        }
+      }
+    }
+
+    mesh.vertices = vertices.ToArray();
+    mesh.triangles = triangles.ToArray();
+
+    mesh.RecalculateNormals();
+
+    GameObject edgeObject = new("Edge");
+    edgeObject.transform.SetParent(transform);
+
+    MeshFilter meshFilter = edgeObject.AddComponent<MeshFilter>();
+    meshFilter.mesh = mesh;
+
+    MeshRenderer meshRenderer = edgeObject.AddComponent<MeshRenderer>();
+    meshRenderer.material = EdgeMaterial;
   }
 }
