@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-  public float Speed;
+  public float Speed = 5f;
   private bool isAttacking = false;
   private Vector3 input = Vector3.zero;
   private CharacterController controller;
@@ -18,8 +18,6 @@ public class PlayerController : MonoBehaviour
     animator = GetComponentInChildren<Animator>();
     playerPrefab = transform.GetChild(0).gameObject;
     cameraPivot = GameObject.Find("CameraPivot");
-
-    Speed = 2f;
   }
 
   void GatherInput()
