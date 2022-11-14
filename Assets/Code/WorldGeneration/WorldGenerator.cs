@@ -10,30 +10,34 @@ public class WorldGenerator : MonoBehaviour
   const string Glyphs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
   const int SeedLength = 10;
 
-  public int Width = 7;
-  public int Height = 7;
+  [Header("Grid Size")]
+  public int Size = 100;
 
-  private Room[,] worldGrid;
+  private WorldCell[,] worldGrid;
 
-  private int leftRooms;
+  private int roomsAmount;
+
+  [Header("Rooms")]
   public int MinRooms = 7;
   public int MaxRooms = 12;
-  public int RoomSize = 10;
+  public int RoomWidthBase = 20;
+  public int RoomHeightBase = 20;
 
-  private GameObject roomPrefab;
-  private GameObject doorPrefab;
-  private GameObject runtimeFolder;
+  [Header("Terrain")]
+  public Material TerrainMaterial;
+  private MeshRenderer meshRenderer;
+  private MeshFilter meshFilter;
   private GameObject player;
 
   private void Start()
   {
-    roomPrefab = PrefabUtility.LoadPrefabContents("Assets/Level/Prefabs/WorldGeneration/Room.prefab");
-    doorPrefab = PrefabUtility.LoadPrefabContents("Assets/Level/Prefabs/WorldGeneration/Door.prefab");
-    runtimeFolder = new GameObject("Runtime");
     player = GameObject.Find("Player");
+    meshRenderer = gameObject.GetComponent<MeshRenderer>();
+    meshFilter = gameObject.GetComponent<MeshFilter>();
 
     GenerateSeed();
     GenerateWorld();
+    DrawTerrainMesh();
   }
 
   private void Update()
@@ -44,7 +48,7 @@ public class WorldGenerator : MonoBehaviour
   private void GenerateWorld()
   {
     GenerateGrid();
-    GenerateRooms();
+    PlacePlayer();
   }
 
   private void GenerateSeed()
@@ -63,138 +67,177 @@ public class WorldGenerator : MonoBehaviour
 
   private void GenerateGrid()
   {
-    worldGrid = new Room[Width, Height];
+    worldGrid = new WorldCell[Size, Size];
 
-    int x = Width / 2;
-    int y = Height / 2;
+    int x = Size / 2;
+    int y = Size / 2;
 
-    worldGrid[x, y] = new Room(Room.RoomType.Start, x, y, RoomSize, RoomSize);
-    leftRooms = Random.Range(MinRooms, MaxRooms + 1) - 1;
+    FillGridWithCell(x, y, WorldCell.CellType.StartRoomFloor);
 
-    PopulateGrid(x, y);
+    roomsAmount = Random.Range(MinRooms, MaxRooms + 1) - 1;
+
+    PopulateGrid(x, y, Random.Range(0, 4));
   }
 
-  private void PopulateGrid(int x, int y)
+  private void FillGridWithCell(int x, int y, WorldCell.CellType worldCellType)
   {
-    if (leftRooms == 0)
+    for (int i = 0; i < RoomWidthBase && x + i < Size; i++)
+    {
+      for (int j = 0; j < RoomHeightBase && y + j < Size; j++)
+      {
+        worldGrid[x + i, y + j] = new WorldCell(worldCellType);
+      }
+    }
+  }
+
+  private void PopulateGrid(int x, int y, int direction)
+  {
+    if (roomsAmount < 0)
     {
       return;
     }
 
-    // Create a room in a random direction from the current room
-    int direction = Random.Range(0, 4);
     switch (direction)
     {
       case 0:
-        x++;
+        // Right
+        x += RoomWidthBase;
+        if (x >= Size)
+        {
+          x = Size / 2;
+          y = Size / 2;
+        }
         break;
       case 1:
-        x--;
+        // Left
+        x -= RoomWidthBase;
+        if (x < 0)
+        {
+          x = Size / 2;
+          y = Size / 2;
+        }
         break;
       case 2:
-        y++;
+        // Up
+        y += RoomHeightBase;
+        if (y >= Size)
+        {
+          y = Size / 2;
+          x = Size / 2;
+        }
         break;
       case 3:
-        y--;
+        // Down
+        y -= RoomHeightBase;
+        if (y < 0)
+        {
+          y = Size / 2;
+          x = Size / 2;
+        }
         break;
-    }
-
-    // If the room is out of bounds, try again
-    if (x < 0 || x >= Width || y < 0 || y >= Height)
-    {
-      PopulateGrid(x, y);
-      return;
     }
 
     // If the room is already occupied, repeat with that room
     if (worldGrid[x, y] != null)
     {
-      PopulateGrid(x, y);
+      PopulateGrid(x, y, Random.Range(0, 4));
       return;
     }
 
-    // If the room is valid, create it and decrement the number of rooms left to create
-    worldGrid[x, y] = new Room(Room.RoomType.Normal, x, y, RoomSize, RoomSize);
-    leftRooms--;
-
-    // If the room is valid, create a door in the current room and the new room
-    switch (direction)
-    {
-      case 0:
-        worldGrid[x, y].SetDoor(1, new Door(Door.DoorType.Normal, x, y));
-        break;
-      case 1:
-        worldGrid[x, y].SetDoor(0, new Door(Door.DoorType.Normal, x, y));
-        break;
-      case 2:
-        worldGrid[x, y].SetDoor(3, new Door(Door.DoorType.Normal, x, y));
-        break;
-      case 3:
-        worldGrid[x, y].SetDoor(2, new Door(Door.DoorType.Normal, x, y));
-        break;
-    }
+    FillGridWithCell(x, y, WorldCell.CellType.NormalRoomFloor);
+    roomsAmount--;
 
     // If the room is valid, call PopulateGrid() again
-    PopulateGrid(x, y);
+    PopulateGrid(x, y, Random.Range(0, 4));
   }
 
-  private void GenerateRooms()
+  private void PlacePlayer()
   {
-    for (int x = 0; x < Width - 1; x++)
+    player.GetComponent<CharacterController>().Move(new Vector3(Size / 2, 0, Size / 2));
+  }
+
+  void DrawTerrainMesh()
+  {
+    Mesh mesh = new();
+
+    List<Vector3> vertices = new();
+    List<int> triangles = new();
+    List<Vector2> uvs = new();
+
+    for (int i = 0; i < Size; i++)
     {
-      for (int y = 0; y < Height - 1; y++)
+      for (int j = 0; j < Size; j++)
       {
-        if (worldGrid[x, y] != null)
-        {
-          GenerateRoom(worldGrid[x, y]);
-        }
+        Vector3 topLeft = new(i - .5f, 0, j + .5f);
+        Vector3 topRight = new(i + .5f, 0, j + .5f);
+        Vector3 bottomLeft = new(i - .5f, 0, j - .5f);
+        Vector3 bottomRight = new(i + .5f, 0, j - .5f);
+
+        vertices.Add(topLeft);
+        vertices.Add(topRight);
+        vertices.Add(bottomLeft);
+        vertices.Add(bottomRight);
+
+        Vector2 uvTopLeft = new(i / (float)Size, j / (float)Size);
+        Vector2 uvTopRight = new((i + 1) / (float)Size, j / (float)Size);
+        Vector2 uvBottomLeft = new(i / (float)Size, (j + 1) / (float)Size);
+        Vector2 uvBottomRight = new((i + 1) / (float)Size, (j + 1) / (float)Size);
+
+        uvs.Add(uvTopLeft);
+        uvs.Add(uvTopRight);
+        uvs.Add(uvBottomLeft);
+        uvs.Add(uvBottomRight);
+
+        triangles.Add(vertices.Count - 4);
+        triangles.Add(vertices.Count - 3);
+        triangles.Add(vertices.Count - 2);
+
+        triangles.Add(vertices.Count - 3);
+        triangles.Add(vertices.Count - 1);
+        triangles.Add(vertices.Count - 2);
       }
     }
+
+    mesh.vertices = vertices.ToArray();
+    mesh.triangles = triangles.ToArray();
+    mesh.uv = uvs.ToArray();
+
+    mesh.RecalculateNormals();
+    meshFilter.mesh = mesh;
+
+    DrawTerrainTexture();
   }
 
-  private void GenerateRoom(Room room)
+  void DrawTerrainTexture()
   {
-    // Generate the room based on the type
-    // Generate the doors
-    // If the room is a start room, generate a player
-    // If the room is a boss room, generate a boss
-    // If the room is a normal room, generate enemies
+    Texture2D texture = new(Size, Size);
+    Color32[] colorMap = new Color32[Size * Size];
 
-    // Generate the room based on the type
-    switch (room.Type)
+    for (int i = 0; i < Size; i++)
     {
-      case Room.RoomType.Start:
-        // Generate the start room
-        GenerateStartRoom(room);
-        break;
-      case Room.RoomType.Boss:
-        // Generate the boss room
-        Instantiate(roomPrefab, new Vector3(room.IndexX * room.Width, 0, room.IndexY * room.Height), Quaternion.identity, runtimeFolder.transform);
-        break;
-      case Room.RoomType.Normal:
-        // Generate the normal room
-        Instantiate(roomPrefab, new Vector3(room.IndexX * room.Width, 0, room.IndexY * room.Height), Quaternion.identity, runtimeFolder.transform);
-        break;
+      for (int j = 0; j < Size; j++)
+      {
+        if (worldGrid[i, j] == null)
+        {
+          colorMap[i + j * Size] = Color.black;
+          continue;
+        }
+
+        if (worldGrid[i, j].Type == WorldCell.CellType.StartRoomFloor)
+        {
+          colorMap[i + j * Size] = Color.green;
+          continue;
+        }
+
+        colorMap[i + j * Size] = Color.white;
+      }
     }
 
-    // // Generate the doors
-    // for (int i = 0; i < room.doors.Length; i++)
-    // {
-    //   if (room.doors[i] != null)
-    //   {
-    //     room.doors[i].GenerateDoor();
-    //   }
-    // }
-  }
+    texture.filterMode = FilterMode.Point;
+    texture.SetPixels32(colorMap, 0);
+    texture.Apply();
 
-  private void GenerateStartRoom(Room room)
-  {
-    Vector3 roomPos = new Vector3(room.IndexX * room.Width, 0, room.IndexY * room.Height);
-
-    GameObject startRoom = Instantiate(roomPrefab, roomPos, Quaternion.identity, runtimeFolder.transform);
-    room.SetRoomPrefab(startRoom);
-
-    // Spawn the player on the middle of the room terrain
-    player.transform.position = new Vector3(roomPos.x + room.Width / 2, 1, roomPos.z + room.Height / 2);
+    meshRenderer.material = TerrainMaterial;
+    meshRenderer.material.mainTexture = texture;
   }
 }

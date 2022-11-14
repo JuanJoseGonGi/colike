@@ -4,54 +4,95 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-  public float Speed = 5f;
-  public float JumpForce = 5f;
-  public float Gravity = 9.81f;
-  public float GroundDistance = 0.4f;
-  public LayerMask GroundMask;
-
+  public float Speed;
+  private bool isAttacking = false;
+  private Vector3 input = Vector3.zero;
   private CharacterController controller;
-  private Vector3 velocity;
-  private bool isGrounded;
-
   private Animator animator;
+  private GameObject playerPrefab;
+  private GameObject cameraPivot;
 
   private void Start()
   {
     controller = GetComponent<CharacterController>();
+    animator = GetComponentInChildren<Animator>();
+    playerPrefab = transform.GetChild(0).gameObject;
+    cameraPivot = GameObject.Find("CameraPivot");
+
+    Speed = 2f;
+  }
+
+  void GatherInput()
+  {
+    Vector3 userInput = new(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+
+    Matrix4x4 matrix = Matrix4x4.Rotate(Quaternion.Euler(0, 45, 0));
+    Vector3 rotatedInput = matrix.MultiplyPoint3x4(userInput);
+
+    input = rotatedInput.normalized;
+  }
+
+  private void HandleAttack()
+  {
+    if (Input.GetMouseButtonDown(0) && !isAttacking)
+    {
+      isAttacking = true;
+      return;
+    }
+
+    isAttacking = false;
+  }
+
+  void HandleRotation()
+  {
+    playerPrefab.transform.LookAt(cameraPivot.transform.position, -Vector3.up);
+
+    bool isMovingLeft = Input.GetAxisRaw("Horizontal") < 0;
+    bool isMovingRight = Input.GetAxisRaw("Horizontal") > 0;
+
+    if (isMovingLeft)
+    {
+      playerPrefab.GetComponent<SpriteRenderer>().flipX = true;
+      return;
+    }
+
+    if (isMovingRight)
+    {
+      playerPrefab.GetComponent<SpriteRenderer>().flipX = false;
+    }
+  }
+
+  void HandleAnimation()
+  {
+    animator.SetFloat("Speed", controller.velocity.magnitude);
+    animator.SetBool("isAttacking", isAttacking);
   }
 
   // Update is called once per frame
   void Update()
   {
-    FixedUpdate();
+    GatherInput();
+    HandleAttack();
+    HandleRotation();
+    HandleAnimation();
+  }
+
+  private void HandleMovement()
+  {
+    controller.Move(Time.deltaTime * Speed * input);
+  }
+
+  private void HandleJump()
+  {
+    if (Input.GetButtonDown("Jump"))
+    {
+      controller.Move(Vector3.up * 5f);
+    }
   }
 
   private void FixedUpdate()
   {
-    isGrounded = Physics.CheckSphere(transform.position, GroundDistance, GroundMask);
-
-    if (isGrounded && velocity.y < 0)
-    {
-      velocity.y = -2f;
-    }
-
-    float x = Input.GetAxis("Horizontal");
-    float z = Input.GetAxis("Vertical");
-
-    Vector3 move = transform.right * x + transform.forward * z;
-
-    controller.Move(move * Speed * Time.deltaTime);
-
-    if (Input.GetButtonDown("Jump") && isGrounded)
-    {
-      velocity.y = Mathf.Sqrt(JumpForce * -2f * Gravity);
-    }
-
-    velocity.y += Gravity * Time.deltaTime;
-
-    controller.Move(velocity * Time.deltaTime);
-
-    animator.SetFloat("Speed", Mathf.Abs(x) + Mathf.Abs(z));
+    HandleMovement();
+    HandleJump();
   }
 }
