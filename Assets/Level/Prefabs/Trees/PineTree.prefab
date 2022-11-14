@@ -14,7 +14,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &5883710356353307951
 Transform:
@@ -42,6 +42,10 @@ PrefabInstance:
     - target: {fileID: 1656226002977108, guid: e191e21fcb275784a9f8b6d08dcd932c, type: 3}
       propertyPath: m_Name
       value: pineTree03
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656226002977108, guid: e191e21fcb275784a9f8b6d08dcd932c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 4423857786125230, guid: e191e21fcb275784a9f8b6d08dcd932c, type: 3}
       propertyPath: m_RootOrder

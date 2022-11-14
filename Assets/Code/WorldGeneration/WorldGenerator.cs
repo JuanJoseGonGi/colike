@@ -160,7 +160,7 @@ public class WorldGenerator : MonoBehaviour
 
   private void PlaceWater()
   {
-    waterPlane.transform.position = new Vector3(Size / 2, -.75f, Size / 2);
+    waterPlane.transform.position = new Vector3(Size / 2, -.5f, Size / 2);
   }
 
   void DrawTerrainMesh()
@@ -218,6 +218,9 @@ public class WorldGenerator : MonoBehaviour
 
     MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
     meshFilter.mesh = mesh;
+
+    MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
+    meshCollider.sharedMesh = mesh;
 
     DrawTerrainTexture();
     DrawEdgesMesh();

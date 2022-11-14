@@ -5,6 +5,9 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
   public float Speed = 5f;
+  public float JumpSpeed = 8f;
+  public float Gravity = 9.8f;
+  private float verticalSpeed = 0f;
   private bool isAttacking = false;
   private Vector3 input = Vector3.zero;
   private CharacterController controller;
@@ -66,31 +69,36 @@ public class PlayerController : MonoBehaviour
     animator.SetBool("isAttacking", isAttacking);
   }
 
+  private void HandleJump()
+  {
+    if (Input.GetButtonDown("Jump") && controller.isGrounded)
+    {
+      verticalSpeed = JumpSpeed;
+    }
+
+    verticalSpeed -= Gravity * Time.deltaTime;
+  }
+
   // Update is called once per frame
   void Update()
   {
     GatherInput();
     HandleAttack();
+    HandleJump();
     HandleRotation();
     HandleAnimation();
   }
 
   private void HandleMovement()
   {
-    controller.Move(Time.deltaTime * Speed * input);
-  }
+    Vector3 movement = input * Speed;
+    movement.y = verticalSpeed;
 
-  private void HandleJump()
-  {
-    if (Input.GetButtonDown("Jump"))
-    {
-      controller.Move(Vector3.up * 5f);
-    }
+    controller.Move(Time.deltaTime * movement);
   }
 
   private void FixedUpdate()
   {
     HandleMovement();
-    HandleJump();
   }
 }

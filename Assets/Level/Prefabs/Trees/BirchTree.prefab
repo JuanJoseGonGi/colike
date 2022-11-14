@@ -14,7 +14,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &9121793062689562662
 Transform:
@@ -42,6 +42,10 @@ PrefabInstance:
     - target: {fileID: 1250690161900600, guid: e6f343cc46467004f811ce2ba3a3841b, type: 3}
       propertyPath: m_Name
       value: birchTree
+      objectReference: {fileID: 0}
+    - target: {fileID: 1250690161900600, guid: e6f343cc46467004f811ce2ba3a3841b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 4842888263158114, guid: e6f343cc46467004f811ce2ba3a3841b, type: 3}
       propertyPath: m_RootOrder
