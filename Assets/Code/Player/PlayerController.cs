@@ -5,15 +5,22 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
   public float Speed = 5f;
-  public float JumpSpeed = 8f;
-  public float Gravity = 9.8f;
+  public float Gravity = 20f;
+
+  [Header("Combat")]
+  public Transform attackPoint;
+  public float attackRange = 0.5f;
+  public float attackRate = 2f;
+  public LayerMask enemyLayers;
+  private float nextAttackTime = 0f;
+
   private float verticalSpeed = 0f;
-  private bool isAttacking = false;
   private Vector3 input = Vector3.zero;
   private CharacterController controller;
   private Animator animator;
   private GameObject playerPrefab;
   private GameObject cameraPivot;
+  private Player player;
 
   private void Start()
   {
@@ -21,6 +28,7 @@ public class PlayerController : MonoBehaviour
     animator = GetComponentInChildren<Animator>();
     playerPrefab = transform.GetChild(0).gameObject;
     cameraPivot = GameObject.Find("CameraPivot");
+    player = GetComponent<Player>();
   }
 
   void GatherInput()
@@ -33,15 +41,36 @@ public class PlayerController : MonoBehaviour
     input = rotatedInput.normalized;
   }
 
+  private void Attack()
+  {
+    animator.SetTrigger("Attack");
+
+    Collider[] hitEnemies = new Collider[10];
+    Physics.OverlapSphereNonAlloc(attackPoint.position, attackRange, hitEnemies, enemyLayers);
+
+    foreach (Collider enemy in hitEnemies)
+    {
+      if (enemy == null)
+      {
+        continue;
+      }
+
+      enemy.GetComponent<Enemy>().TakeDamage(10);
+    }
+  }
+
   private void HandleAttack()
   {
-    if (Input.GetMouseButtonDown(0) && !isAttacking)
+    if (Time.time < nextAttackTime)
     {
-      isAttacking = true;
       return;
     }
 
-    isAttacking = false;
+    if (Input.GetMouseButtonDown(0))
+    {
+      Attack();
+      nextAttackTime = Time.time + 1f / attackRate;
+    }
   }
 
   void HandleRotation()
@@ -53,27 +82,25 @@ public class PlayerController : MonoBehaviour
 
     if (isMovingLeft)
     {
+      attackPoint.transform.localPosition = new Vector3(-0.5f, 0, 0.5f);
       playerPrefab.GetComponent<SpriteRenderer>().flipX = true;
       return;
     }
 
     if (isMovingRight)
     {
+      attackPoint.transform.localPosition = new Vector3(0.5f, 0, -0.5f);
       playerPrefab.GetComponent<SpriteRenderer>().flipX = false;
     }
   }
 
-  void HandleAnimation()
-  {
-    animator.SetFloat("Speed", controller.velocity.magnitude);
-    animator.SetBool("isAttacking", isAttacking);
-  }
-
   private void HandleJump()
   {
-    if (Input.GetButtonDown("Jump") && controller.isGrounded)
+    float jumpSpeed = player.GetJumpSpeed();
+
+    if (Input.GetButtonDown("Jump") && controller.isGrounded && jumpSpeed != 0)
     {
-      verticalSpeed = JumpSpeed;
+      verticalSpeed = jumpSpeed;
     }
 
     verticalSpeed -= Gravity * Time.deltaTime;
@@ -86,7 +113,6 @@ public class PlayerController : MonoBehaviour
     HandleAttack();
     HandleJump();
     HandleRotation();
-    HandleAnimation();
   }
 
   private void HandleMovement()
@@ -95,6 +121,8 @@ public class PlayerController : MonoBehaviour
     movement.y = verticalSpeed;
 
     controller.Move(Time.deltaTime * movement);
+
+    animator.SetFloat("Speed", controller.velocity.magnitude);
   }
 
   private void FixedUpdate()

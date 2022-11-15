@@ -28,17 +28,21 @@ public class WorldGenerator : MonoBehaviour
   public Material EdgeMaterial;
   public GameObject[] DecorationPrefabs;
 
+  [Header("Enemies")]
+  public GameObject[] EnemyPrefabs;
+
   private GameObject player;
-  private GameObject waterPlane;
 
   private void Start()
   {
     player = GameObject.Find("Player");
-    waterPlane = GameObject.Find("Water");
 
     GenerateSeed();
     GenerateWorld();
     DrawTerrainMesh();
+
+    GenerateDecoration();
+    GenerateEnemies();
   }
 
   private void Update()
@@ -50,7 +54,6 @@ public class WorldGenerator : MonoBehaviour
   {
     GenerateGrid();
     PlacePlayer();
-    PlaceWater();
   }
 
   private void GenerateSeed()
@@ -158,11 +161,6 @@ public class WorldGenerator : MonoBehaviour
     player.GetComponent<CharacterController>().Move(new Vector3(Size / 2, 0, Size / 2));
   }
 
-  private void PlaceWater()
-  {
-    waterPlane.transform.position = new Vector3(Size / 2, -.5f, Size / 2);
-  }
-
   void DrawTerrainMesh()
   {
     Mesh mesh = new();
@@ -224,7 +222,6 @@ public class WorldGenerator : MonoBehaviour
 
     DrawTerrainTexture();
     DrawEdgesMesh();
-    GenerateDecoration();
   }
 
   void DrawTerrainTexture()
@@ -389,6 +386,9 @@ public class WorldGenerator : MonoBehaviour
 
   void GenerateDecoration()
   {
+    GameObject decoration = new("Decoration");
+    decoration.transform.SetParent(transform);
+
     for (int i = 0; i < Size; i++)
     {
       for (int j = 0; j < Size; j++)
@@ -405,10 +405,38 @@ public class WorldGenerator : MonoBehaviour
         }
 
         GameObject prefab = DecorationPrefabs[Random.Range(0, DecorationPrefabs.Length)];
-        GameObject tree = Instantiate(prefab, transform);
+        GameObject tree = Instantiate(prefab, decoration.transform);
 
         tree.transform.SetPositionAndRotation(new Vector3(i, 0, j), Quaternion.Euler(0, Random.Range(0, 360), 0));
         tree.transform.localScale = Vector3.one * Random.Range(0.8f, 1.2f);
+      }
+    }
+  }
+
+  void GenerateEnemies()
+  {
+    GameObject enemies = new("Enemies");
+    enemies.transform.SetParent(transform);
+
+    for (int i = 0; i < Size; i++)
+    {
+      for (int j = 0; j < Size; j++)
+      {
+        if (worldGrid[i, j] == null || worldGrid[i, j].Type == WorldCell.CellType.Empty)
+        {
+          continue;
+        }
+
+        float densityValue = Random.Range(0f, 1f);
+        if (densityValue > 0.01f)
+        {
+          continue;
+        }
+
+        GameObject prefab = EnemyPrefabs[Random.Range(0, EnemyPrefabs.Length)];
+        GameObject enemy = Instantiate(prefab, enemies.transform);
+
+        enemy.transform.SetPositionAndRotation(new Vector3(i, 0, j), Quaternion.Euler(0, 45, 0));
       }
     }
   }
