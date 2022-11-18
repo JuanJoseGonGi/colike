@@ -426,6 +426,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 32102253}
     m_Modifications:
     - target: {fileID: 1489600861921324677, guid: 078264fe5901ee34dab111e476da4b17, type: 3}
@@ -474,7 +475,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7712057370509936090, guid: 078264fe5901ee34dab111e476da4b17, type: 3}
       propertyPath: EnemyPrefabs.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7712057370509936090, guid: 078264fe5901ee34dab111e476da4b17, type: 3}
       propertyPath: TreePrefabs.Array.data[0]
@@ -492,6 +493,10 @@ PrefabInstance:
       propertyPath: EnemyPrefabs.Array.data[0]
       value: 
       objectReference: {fileID: 3288615897108355419, guid: da5bed5ef5a0fd8419c3edb13f0920bd, type: 3}
+    - target: {fileID: 7712057370509936090, guid: 078264fe5901ee34dab111e476da4b17, type: 3}
+      propertyPath: EnemyPrefabs.Array.data[1]
+      value: 
+      objectReference: {fileID: 3288615897108355419, guid: 2dc82bfabd5c6ba499b4cf910947ca88, type: 3}
     - target: {fileID: 7712057370509936090, guid: 078264fe5901ee34dab111e476da4b17, type: 3}
       propertyPath: DecorationPrefabs.Array.size
       value: 5
@@ -561,6 +566,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 078264fe5901ee34dab111e476da4b17, type: 3}
 --- !u!4 &341903818 stripped
 Transform:
@@ -678,6 +684,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 658372960}
     m_Modifications:
     - target: {fileID: 1727757632549147401, guid: 9946555173545dd4eab338658e9b4200, type: 3}
@@ -741,6 +748,7 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 9946555173545dd4eab338658e9b4200, type: 3}
 --- !u!1 &1505489369
 GameObject:

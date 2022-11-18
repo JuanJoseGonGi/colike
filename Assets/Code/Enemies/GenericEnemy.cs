@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThiefEnemy : Enemy
+public class GenericEnemy : Enemy
 {
   public Animator Animator;
 
   public override void Start()
   {
+    PatrolCooldown = Random.Range(1f, 10f);
     base.Start();
   }
 
@@ -23,13 +24,13 @@ public class ThiefEnemy : Enemy
 
   public override void Attack()
   {
-    if (AttackTimer > 0)
+    if (attackTimer > 0)
     {
-      AttackTimer -= Time.deltaTime;
+      attackTimer -= Time.deltaTime;
       return;
     }
 
-    AttackTimer = AttackCooldown;
+    attackTimer = AttackCooldown;
 
     Animator.SetTrigger("Attack");
     player.GetComponent<Player>().TakeDamage(AttackDamage);
@@ -40,13 +41,34 @@ public class ThiefEnemy : Enemy
     Animator.SetTrigger("TakeDamage");
   }
 
-  public override void AnimateMovement()
+  void HandleRotation()
   {
-    Animator.SetFloat("Speed", agent.velocity.magnitude);
+    if (agent.velocity == Vector3.zero)
+    {
+      return;
+    }
+
+    float angle = Mathf.Atan2(agent.velocity.x, agent.velocity.z) * Mathf.Rad2Deg;
+
+    bool isMovingLeft = angle < 0;
+    bool isMovingRight = angle > 0;
+
+    if (isMovingLeft)
+    {
+      Prefab.transform.localScale = new(1, 1, 1);
+      return;
+    }
+
+    if (isMovingRight)
+    {
+      Prefab.transform.localScale = new(-1, 1, 1);
+    }
   }
 
   public override void Update()
   {
     base.Patrol();
+    Animator.SetFloat("Speed", agent.velocity.magnitude);
+    HandleRotation();
   }
 }

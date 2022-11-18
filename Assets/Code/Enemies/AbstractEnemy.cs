@@ -11,14 +11,20 @@ public abstract class Enemy : MonoBehaviour
   public int MaxHealth;
   public HealthBar HealthBar;
 
-  [Header("AI")]
+  [Header("Attack")]
   public float AttackRange;
   public float AttackCooldown;
   public int AttackDamage;
-  public float AttackTimer;
+  protected float attackTimer;
+
+  [Header("AI")]
   public float HuntRange;
+  public float PatrolCooldown;
+  protected float patrolTimer;
+
   protected GameObject player;
   protected NavMeshAgent agent;
+  public GameObject Prefab;
 
   public virtual void Start()
   {
@@ -59,8 +65,6 @@ public abstract class Enemy : MonoBehaviour
       Patrol();
       return;
     }
-
-    AnimateMovement();
   }
 
   public virtual Vector3 RandomNavmeshLocation(float radius)
@@ -89,12 +93,13 @@ public abstract class Enemy : MonoBehaviour
       return;
     }
 
-    if (agent.remainingDistance <= agent.stoppingDistance + 0.1f)
+    patrolTimer -= Time.deltaTime;
+
+    if (agent.remainingDistance <= agent.stoppingDistance + 0.1f && patrolTimer <= 0)
     {
       agent.SetDestination(RandomNavmeshLocation(10));
+      patrolTimer = PatrolCooldown;
     }
-
-    AnimateMovement();
   }
 
   public virtual bool IsDead()
@@ -109,6 +114,4 @@ public abstract class Enemy : MonoBehaviour
   public abstract void Attack();
 
   public abstract void AnimateDamage();
-
-  public abstract void AnimateMovement();
 }
