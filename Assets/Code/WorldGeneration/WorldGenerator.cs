@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
+using UnityEngine.AI;
+using Unity.AI.Navigation;
+
 
 public class WorldGenerator : MonoBehaviour
 {
@@ -10,7 +12,7 @@ public class WorldGenerator : MonoBehaviour
   const string Glyphs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
   const int SeedLength = 10;
 
-  [Header("Grid Size")]
+  [Header("Grid")]
   public int Size = 100;
 
   private WorldCell[,] worldGrid;
@@ -31,7 +33,9 @@ public class WorldGenerator : MonoBehaviour
   [Header("Enemies")]
   public GameObject[] EnemyPrefabs;
 
+  private GameObject terrain;
   private GameObject player;
+  private NavMeshSurface navMeshSurface;
 
   private void Start()
   {
@@ -40,8 +44,10 @@ public class WorldGenerator : MonoBehaviour
     GenerateSeed();
     GenerateWorld();
     DrawTerrainMesh();
-
     GenerateDecoration();
+
+    navMeshSurface.BuildNavMesh();
+
     GenerateEnemies();
   }
 
@@ -214,10 +220,17 @@ public class WorldGenerator : MonoBehaviour
 
     mesh.RecalculateNormals();
 
-    MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
+    terrain = new("Terrain");
+    terrain.transform.parent = transform;
+    terrain.transform.localPosition = Vector3.zero;
+    terrain.isStatic = true;
+
+    navMeshSurface = terrain.AddComponent<NavMeshSurface>();
+
+    MeshFilter meshFilter = terrain.AddComponent<MeshFilter>();
     meshFilter.mesh = mesh;
 
-    MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
+    MeshCollider meshCollider = terrain.AddComponent<MeshCollider>();
     meshCollider.sharedMesh = mesh;
 
     DrawTerrainTexture();
@@ -246,7 +259,7 @@ public class WorldGenerator : MonoBehaviour
     texture.SetPixels32(colorMap, 0);
     texture.Apply();
 
-    MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+    MeshRenderer meshRenderer = terrain.AddComponent<MeshRenderer>();
     meshRenderer.material = TerrainMaterial;
     meshRenderer.material.mainTexture = texture;
   }
@@ -375,7 +388,8 @@ public class WorldGenerator : MonoBehaviour
     mesh.RecalculateNormals();
 
     GameObject edgeObject = new("Edge");
-    edgeObject.transform.SetParent(transform);
+    edgeObject.transform.SetParent(terrain.transform);
+    edgeObject.isStatic = true;
 
     MeshFilter meshFilter = edgeObject.AddComponent<MeshFilter>();
     meshFilter.mesh = mesh;
@@ -388,6 +402,7 @@ public class WorldGenerator : MonoBehaviour
   {
     GameObject decoration = new("Decoration");
     decoration.transform.SetParent(transform);
+    decoration.isStatic = true;
 
     for (int i = 0; i < Size; i++)
     {
@@ -434,10 +449,22 @@ public class WorldGenerator : MonoBehaviour
         }
 
         GameObject prefab = EnemyPrefabs[Random.Range(0, EnemyPrefabs.Length)];
-        GameObject enemy = Instantiate(prefab, enemies.transform);
-
-        enemy.transform.SetPositionAndRotation(new Vector3(i, 0, j), Quaternion.Euler(0, 45, 0));
+        Instantiate(prefab, new Vector3(i, 0, j), Quaternion.Euler(0, 45, 0), enemies.transform);
       }
     }
+  }
+
+  void OnDrawGizmos()
+  {
+    if (worldGrid == null)
+    {
+      return;
+    }
+
+    // draw terrain bounds
+    Gizmos.color = Color.red;
+
+    Bounds bounds = terrain.GetComponent<MeshRenderer>().bounds;
+    Gizmos.DrawWireCube(bounds.center, bounds.size);
   }
 }

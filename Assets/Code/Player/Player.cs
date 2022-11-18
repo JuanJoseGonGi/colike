@@ -67,4 +67,10 @@ public class Player : MonoBehaviour
 
     return 0;
   }
+
+  public void TakeDamage(int damage)
+  {
+    Health -= damage;
+    HealthBar.UpdateHealthBar(MaxHealth, Health);
+  }
 }

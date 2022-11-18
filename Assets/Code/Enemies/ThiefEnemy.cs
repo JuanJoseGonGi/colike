@@ -8,9 +8,6 @@ public class ThiefEnemy : Enemy
 
   public override void Start()
   {
-    MaxHealth = 100;
-    Health = MaxHealth;
-
     base.Start();
   }
 
@@ -21,6 +18,21 @@ public class ThiefEnemy : Enemy
     this.enabled = false;
     GetComponent<BoxCollider>().enabled = false;
     HealthBar.gameObject.SetActive(false);
+    agent.enabled = false;
+  }
+
+  public override void Attack()
+  {
+    if (AttackTimer > 0)
+    {
+      AttackTimer -= Time.deltaTime;
+      return;
+    }
+
+    AttackTimer = AttackCooldown;
+
+    Animator.SetTrigger("Attack");
+    player.GetComponent<Player>().TakeDamage(AttackDamage);
   }
 
   public override void AnimateDamage()
@@ -28,6 +40,13 @@ public class ThiefEnemy : Enemy
     Animator.SetTrigger("TakeDamage");
   }
 
+  public override void AnimateMovement()
+  {
+    Animator.SetFloat("Speed", agent.velocity.magnitude);
+  }
+
   public override void Update()
-  { }
+  {
+    base.Patrol();
+  }
 }

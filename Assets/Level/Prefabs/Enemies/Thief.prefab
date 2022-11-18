@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8862364454770634458}
   - component: {fileID: 9005527103743977671}
   - component: {fileID: 4680656874365660764}
+  - component: {fileID: 5171104149090304791}
   m_Layer: 6
   m_Name: Thief
   m_TagString: Untagged
@@ -60,10 +61,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adaab11d258bf1147affac71511dca20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Health: 0
-  MaxHealth: 0
+  Health: 100
+  MaxHealth: 100
   HealthBar: {fileID: 5883040892361972882}
+  AttackRange: 1.5
+  AttackCooldown: 1
+  AttackDamage: 5
+  AttackTimer: 0
+  HuntRange: 3
   Animator: {fileID: 5280097622225229154}
+--- !u!195 &5171104149090304791
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3288615897108355419}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 0
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.725
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1001 &2360498478714108606
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -263,6 +291,10 @@ PrefabInstance:
     - target: {fileID: 4000013306724104, guid: 13c470c5b8dcd4854834911f7e0a9a6c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 95000010572177686, guid: 13c470c5b8dcd4854834911f7e0a9a6c, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 212000013066927242, guid: 13c470c5b8dcd4854834911f7e0a9a6c, type: 3}
       propertyPath: m_CastShadows
