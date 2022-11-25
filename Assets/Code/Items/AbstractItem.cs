@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public abstract class AbstractItem
+public abstract class AbstractItem : MonoBehaviour
 {
-  public abstract string GiveName();
+  public virtual void ApplyEffect(Player player, int stack) { }
 
-  public virtual void Update(Player player, int stacks)
-  {
-
-  }
+  public virtual void RemoveEffect(Player player, int stack) { }
 }

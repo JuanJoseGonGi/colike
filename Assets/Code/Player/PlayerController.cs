@@ -14,6 +14,9 @@ public class PlayerController : MonoBehaviour
   public LayerMask enemyLayers;
   private float nextAttackTime = 0f;
 
+  [Header("FX")]
+  public AudioSource attackFX;
+
   private float verticalSpeed = 0f;
   private Vector3 input = Vector3.zero;
   private CharacterController controller;
@@ -44,6 +47,7 @@ public class PlayerController : MonoBehaviour
   private void Attack()
   {
     animator.SetTrigger("Attack");
+    attackFX.Play();
 
     Collider[] hitEnemies = new Collider[10];
     Physics.OverlapSphereNonAlloc(attackPoint.position, attackRange, hitEnemies, enemyLayers);

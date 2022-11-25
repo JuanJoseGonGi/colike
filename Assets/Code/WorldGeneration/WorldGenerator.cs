@@ -37,6 +37,9 @@ public class WorldGenerator : MonoBehaviour
   private GameObject player;
   private NavMeshSurface navMeshSurface;
 
+  [Header("Items")]
+  public GameObject[] ItemPrefabs;
+
   private void Start()
   {
     player = GameObject.Find("Player");
@@ -49,6 +52,7 @@ public class WorldGenerator : MonoBehaviour
     navMeshSurface.BuildNavMesh();
 
     GenerateEnemies();
+    GenerateItems();
   }
 
   private void Update()
@@ -454,17 +458,39 @@ public class WorldGenerator : MonoBehaviour
     }
   }
 
-  void OnDrawGizmos()
+  void GenerateItems()
   {
-    if (worldGrid == null)
+    GameObject items = new("Items");
+    items.transform.SetParent(transform);
+
+    for (int i = 0; i < Size; i++)
     {
-      return;
+      if (Mathf.Abs(Mathf.Ceil(Size / 2 - i)) < 2)
+      {
+        continue;
+      }
+
+      for (int j = 0; j < Size; j++)
+      {
+        if (Mathf.Abs(Mathf.Ceil(Size / 2 - j)) < 2)
+        {
+          continue;
+        }
+
+        if (worldGrid[i, j] == null || worldGrid[i, j].Type == WorldCell.CellType.Empty)
+        {
+          continue;
+        }
+
+        float densityValue = Random.Range(0f, 1f);
+        if (densityValue > 0.01f)
+        {
+          continue;
+        }
+
+        GameObject prefab = ItemPrefabs[Random.Range(0, ItemPrefabs.Length)];
+        Instantiate(prefab, new Vector3(i, 0, j), Quaternion.Euler(0, 45, 0), items.transform);
+      }
     }
-
-    // draw terrain bounds
-    Gizmos.color = Color.red;
-
-    Bounds bounds = terrain.GetComponent<MeshRenderer>().bounds;
-    Gizmos.DrawWireCube(bounds.center, bounds.size);
   }
 }

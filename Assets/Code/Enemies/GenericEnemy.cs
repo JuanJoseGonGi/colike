@@ -33,6 +33,7 @@ public class GenericEnemy : Enemy
     attackTimer = AttackCooldown;
 
     Animator.SetTrigger("Attack");
+    attackFX.Play();
     player.GetComponent<Player>().TakeDamage(AttackDamage);
   }
 

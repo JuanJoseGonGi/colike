@@ -22,9 +22,15 @@ public abstract class Enemy : MonoBehaviour
   public float PatrolCooldown;
   protected float patrolTimer;
 
+  [Header("FX")]
+  public AudioSource attackFX;
+  public AudioSource hurtFX;
+
+  [Header("Other")]
+  public GameObject Prefab;
+
   protected GameObject player;
   protected NavMeshAgent agent;
-  public GameObject Prefab;
 
   public virtual void Start()
   {
@@ -43,6 +49,7 @@ public abstract class Enemy : MonoBehaviour
     HealthBar.UpdateHealthBar(MaxHealth, Health);
 
     AnimateDamage();
+    hurtFX.Play();
 
     if (Health <= 0)
     {

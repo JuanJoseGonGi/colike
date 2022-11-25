@@ -15,12 +15,11 @@ public class Player : MonoBehaviour
   {
     HealthBar.UpdateHealthBar(MaxHealth, Health);
 
-    HealingItem healingItem = new(5, 2);
-    ItemStack healingItemStack = new(healingItem, healingItem.GiveName(), 1);
-    inventory.Add(healingItemStack);
+    JumpItem jumpItem = gameObject.AddComponent<JumpItem>();
+    jumpItem.JumpHeight = 10;
+    jumpItem.JumpPerStack = 5;
 
-    JumpItem jumpItem = new(8, 2);
-    ItemStack jumpItemStack = new(jumpItem, jumpItem.GiveName(), 1);
+    ItemStack jumpItemStack = new(jumpItem, "JumpItem", 1);
     inventory.Add(jumpItemStack);
 
     StartCoroutine(CallItemUpdate());
@@ -30,15 +29,11 @@ public class Player : MonoBehaviour
   {
     foreach (ItemStack itemStack in inventory)
     {
-      itemStack.Item.Update(this, itemStack.Stack);
+      itemStack.Item.ApplyEffect(this, itemStack.Stack);
     }
 
     yield return new WaitForSeconds(1f);
     StartCoroutine(CallItemUpdate());
-  }
-
-  void Update()
-  {
   }
 
   public void Heal(int amount)
